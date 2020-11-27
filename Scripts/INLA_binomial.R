@@ -8,8 +8,8 @@
   library(raster) # for working with rasters
   library(maps) # additional helpful mapping packages
 library(tidyr)
-source('F:/Postdoc Hamburg/Master Pleuroncodes/INLA_models/Scripts/spde-book-functions.R')
-###Input data########
+source('./Scripts/spde-book-functions.R')
+###Input data#######
 data<-readRDS(file = "./Data/data06_13.rds")
 data06<-data%>%filter(Year==2006)%>%dplyr::select(Year,Lon,Lat,Anch,DC)%>%drop_na()
 data06$Anch<-ifelse(data06$Anch>0,1,0)
