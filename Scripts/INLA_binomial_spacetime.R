@@ -8,9 +8,9 @@
   library(raster) # for working with rasters
   library(maps) # additional helpful mapping packages
   library(tidyr)
-source('F:/Postdoc Hamburg/Master Pleuroncodes/spde-book-files/R/spde-book-functions.R')
+source('./Scripts/spde-book-functions.R')
 ###Input data########
-data06_13 <-readRDS(file = "F:/Postdoc Hamburg/Master Pleuroncodes/data06_13.rds")
+data06_13 <-readRDS(file = "./Data/data06_13.rds")
 data06_13<-data06_13%>%dplyr::filter(Lon>-84.47361)%>%drop_na()
 data06_13$Anch<-ifelse(data06_13$Anch>0,1,0)
 set.seed(123)
@@ -26,7 +26,7 @@ proj4string(spdat) <- "+init=epsg:4326"
 #-----Binomial model with spatial and temporal effect------------------
 #1.Define the boundaries
   library(raster)
- filename <- "F:/Postdoc Hamburg/Master Pleuroncodes/peru_extend.shp"
+ filename <- "./Data/peru_extend.shp"
  peru_extend<- shapefile(filename)
 # #Plot Polygons
   pl.grid <- SpatialPolygons(list(Polygons(list(Polygon(
@@ -76,7 +76,7 @@ stk.dat.st <- inla.stack(data = list(z = data06_13t$Anch),
 #A projector for prediction
 time_mesh<-sort(rep(seq(1:6),mesh$n))
 mesh.loc =cbind(rep(mesh$loc[,1],6),rep(mesh$loc[,2],6),sort(rep(seq(1:6),mesh$n)))
-shoreline<-read.csv("F:/Postdoc Hamburg/INLA/shoreline1.csv",sep=",",header = TRUE)
+shoreline<-read.csv("./Data/shoreline1.csv",sep=",",header = TRUE)
 coordinates(shoreline) <- ~ X + Y
 proj4string(shoreline) <- "+init=epsg:4326"
 shoreline_utm = spTransform(shoreline, kmproj)
@@ -149,7 +149,7 @@ for (j in 1:6) {
 
 #Prediction of the response by computation of posterior distribution
 ## ------------------------------------------------------------------------
-source('F:/Postdoc Hamburg/Master Pleuroncodes/spde-book-files/R/spde-book-functions.R')
+source('./Scripts/spde-book-functions.R')
 # #Matrix for prediction
 index_predic <- inla.stack.index(stk.all.st,"prd")$data
 stpred <- matrix(r.DCst$summary.fitted.values$mean[index_predic], 
