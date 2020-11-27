@@ -10,7 +10,7 @@
 library(tidyr)
 source('F:/Postdoc Hamburg/Master Pleuroncodes/INLA_models/Scripts/spde-book-functions.R')
 ###Input data########
-data<-readRDS(file = "F:/Postdoc Hamburg/Master Pleuroncodes/INLA_models/Data/data06_13.rds")
+data<-readRDS(file = "./Data/data06_13.rds")
 data06<-data%>%filter(Year==2006)%>%dplyr::select(Year,Lon,Lat,Anch,DC)%>%drop_na()
 data06$Anch<-ifelse(data06$Anch>0,1,0)
 set.seed(123)
@@ -144,7 +144,7 @@ table(xy.in)
 xmean[!xy.in] <- NA
 xsd[!xy.in] <- NA
 ## ----label = "xrain1", echo = FALSE, fig.width=12, fig.cap = "Posterior mean and standard deviation of the random field (top left and top right, respectively). Posterior mean and standard deviation for the response (bottom left and bottom right, respectively)."----
-source('F:/Postdoc Hamburg/Master Pleuroncodes/spde-book-files/R/spde-book-functions.R')
+source('./Scripts/spde-book-functions.R')
 #plot of the random field
 par(mfrow = c(2, 2), mar = c(0, 0, 0, 4))
 book.plot.field(list(x = projgrid$x, y = projgrid$y, z = xmean))
@@ -186,7 +186,7 @@ id.prd <- inla.stack.index(stk.all, 'prd')$data#indices of the rows correspondin
 sd.prd <- m.prd <- matrix(NA, nxy[1], nxy[2])
 m.prd[xy.in] <- onlyDC2$summary.fitted.values$mean[id.prd]#mean
 sd.prd[xy.in] <- onlyDC2$summary.fitted.values$sd[id.prd]#sd
-source('F:/Postdoc Hamburg/Master Pleuroncodes/spde-book-files/R/spde-book-functions.R')
+source('./Scripts/spde-book-functions.R')
 par(mfrow = c(2, 2), mar = c(0, 0, 0, 4))
 book.plot.field(list(x = projgrid$x, y = projgrid$y, z = xmean))
 book.plot.field(list(x = projgrid$x, y = projgrid$y, z = xsd),
