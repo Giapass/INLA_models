@@ -164,6 +164,13 @@ mu.st1 <- lapply(1:mesh$n, function(j) {
   r[!xy.in] <- NA
   return(r)
 })
+
+mu.st2 <- lapply(1:mesh$n, function(j) {
+  idx <- 1:spde$n.spde + (j - 1) * spde$n.spde
+  r <- inla.mesh.project(projgrid,field = r.DCjoint$summary.ran$i_y$mean[idx])
+  r[!xy.in] <- NA
+  return(r)
+})
 par(mfrow = c(3, 2), mar = c(0, 0, 1, 0))
 zlm1 <- range(unlist(mu.st1), na.rm = TRUE)
 # identify wich time location is near each knot
@@ -171,7 +178,10 @@ for (j in 1:6) {
   book.plot.field(list(x = projgrid$x, y = projgrid$y, z = mu.st1[[j]]), 
                   zlim = zlm1, main = paste0("Mesh timepoint: ", j))
 }
-
+for (j in 1:6) {
+  book.plot.field(list(x = projgrid$x, y = projgrid$y, z = mu.st2[[j]]), 
+                  main = paste0("Mesh timepoint: ", j))
+}
 #Prediction of the response by computation of posterior distribution
 ## ------------------------------------------------------------------------
 source('./Scripts/spde-book-functions.R')
