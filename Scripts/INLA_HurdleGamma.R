@@ -138,10 +138,12 @@ plot(r.DCjoint$marginals.fix[[1]], type = 'l',
 plot(r.DCjoint$marginals.fix[[2]], type = 'l', 
      xlab = 'Intercept.y', ylab = 'Density')
 plot(r.DCjoint$marginals.fix[[3]], type = 'l', 
-     xlab = 'Ocean distance coefficient', ylab = 'Density') 
-for (j in 1:4) 
-  plot(r.DCjoint$marginals.hy[[j]], type = 'l', 
-       ylab = 'Density', xlab = names(r.DCjoint$marginals.hyperpar)[j])
+     xlab = 'Ocean distance coefficient_z', ylab = 'Density') 
+plot(r.DCjoint$marginals.fix[[4]], type = 'l', 
+     xlab = 'Ocean distance coefficient_y', ylab = 'Density') 
+par(mfrow = c(3, 3), mar = c(3, 3.5, 0, 0), mgp = c(1.5, 0.5, 0), las = 0) 
+for (j in 1:7) 
+  plot(r.DCjoint$marginals.hy[[j]], type = 'l', xlab = names(r.DCjoint$marginals.hyperpar)[j])
 #7.Prediction on a grid
 ## ----GRID for projection of field --------------------------------------------------
 #GRID 10km###
@@ -158,11 +160,11 @@ xy.in <- inout(projgrid$lattice$loc, as.matrix(poly.gridutm@polygons[[1]]@Polygo
 table(xy.in)
 mu.st1 <- lapply(1:mesh$n, function(j) {
   idx <- 1:spde$n.spde + (j - 1) * spde$n.spde
-  r <- inla.mesh.project(projgrid,field = r.DCjoint$summary.ran$i$mean[idx])
+  r <- inla.mesh.project(projgrid,field = r.DCjoint$summary.ran$i_z$mean[idx])
   r[!xy.in] <- NA
   return(r)
 })
-par(mfrow = c(4, 4), mar = c(0, 0, 1, 0))
+par(mfrow = c(3, 2), mar = c(0, 0, 1, 0))
 zlm1 <- range(unlist(mu.st1), na.rm = TRUE)
 # identify wich time location is near each knot
 for (j in 1:6) {
