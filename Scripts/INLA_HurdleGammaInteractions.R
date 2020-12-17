@@ -96,7 +96,7 @@ beta_2 = list(theta=list(prior='normal', param=c(0,1)))
 beta_z2 = list(theta=list(prior='normal', param=c(0,1)))
 gamma_z2 = list(theta=list(prior='normal', param=c(0,1)))
 #####Priors######################
-rhoprior <- list(theta = list(prior = 'pccor1',param = c(0.5, 0.9)))#rho
+rhoprior <- list(theta = list(prior = 'pccor1',param = c(0.2, 0.9)))#rho
 pcgprior <- list(prior = 'pc.gamma', param = 1)#gamma prior
 #5.Formula New
 f.interaction <- Y ~ -1+ alpha1+alpha2+
