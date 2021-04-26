@@ -5,6 +5,7 @@ library (dplyr)
 library(rgeos)
 library(raster) # for working with rasters
 library(maps) # additional helpful mapping packages
+library(maptools)
 source('./Scripts/spde-book-functions.R')
 
 # Input data #
@@ -13,9 +14,14 @@ source('./Scripts/spde-book-functions.R')
 
 data = read.csv(file = './Data/data_filtered_complete.csv')
 
-data_1<-data%>%dplyr::select(Year,Lon_M,Lat_M,MUN,ANC,DC,SST,SALI,U,V,GSST, BAT,CHL)
+data_1<-data%>%dplyr::select(Year,Lon_M,Lat_M,MUN,ANC,DC,SST,SALI,GSST, BAT,CHL)
 data_1 = na.omit(data_1)
 data_1$MUN<-ifelse(data_1$MUN>0,1,0)
+data_1$BAT<-(data_1$BAT*-1)/1000
+# Standardise covariates
+data_1<-data_1%>%mutate_at(vars(DC,SST,SALI,GSST, BAT,CHL),scale)
+
+
 RNGkind(sample.kind = 'Rounding')
 set.seed(1234)
 sample_size = floor(0.7*nrow(data_1))
@@ -50,7 +56,7 @@ mesh.t1 = inla.mesh.1d(1:18)
 data_1t$Year<-as.numeric(factor(data_1t$Year))
 
 #3. Projector matrix
-Aspte<- inla.spde.make.A(mesh=mesh, loc=x_loc_utm, group = data_1t$Year)
+Aspte<- inla.spde.make.A(mesh=mesh, loc=x_loc_utm, group.mesh=mesh.t1,group = data_1t$Year)
 
 dim(Aspte)
 
@@ -66,7 +72,10 @@ index.st <- inla.spde.make.index('i', n.spde = mesh$n, n.group = 18)
 #NEW INDEX SPATIO TEMPORAL
 stk.dat.st <- inla.stack(tag='dat', data = list(z = data_1t$MUN), 
                          A = list(Aspte,1), effects = list(index.st,X)) 
-
+#Another way to noted the fixed effects
+#stk.dat.st <- inla.stack(tag='dat', data = list(z = data_1t$MUN), 
+#                         A = list(Aspte,1), effects = list(index.st,list(Intercept=rep(1,N),
+#                         DC=data_1t$DC,SST=data_1t$SST,SALI=data_1t$SALI,GSST=data_1t$GSST,CHL=data_1t$CHL))) 
 
 # #4.1 stack for prediction
 # #A projector for prediction
@@ -74,7 +83,7 @@ time_mesh<-sort(rep(seq(1:18),mesh$n))
 
 mesh.loc =cbind(rep(mesh$loc[,1],18),rep(mesh$loc[,2],18),sort(rep(seq(1:18),mesh$n)))
 
-Aprd <- inla.spde.make.A(mesh,loc=mesh.loc,group=time_mesh)#
+Aprd <- inla.spde.make.A(mesh,loc=mesh.loc,n.group=mesh.t1$n,group=time_mesh)#
 
 dim(Aprd)
 
@@ -95,12 +104,16 @@ Xp = data.frame(Intercept = rep(1,N_pred), DC=data_pred[,1], SST=data_pred[,2], 
 # #stack prediction
 stk.prd.st <- inla.stack(tag='pred', data = list(z = NA),
                          A = list(Aprd,1), effects = list(index.st,Xp))
+#Another way to noted the fixed effects
+#stk.prd.st <- inla.stack(tag='pred', data = list(z = NA),
+#                         A = list(Aprd,1), effects = list(index.st,list(Intercept=rep(1,N),
+#                         DC=data_pred$DC,SST=data_pred$SST,SALI=data_pred$SALI,GSST=data_pred$GSST,CHL=data_pred$CHL)))
 #4.2 stack all
-stk.all.st <- inla.stack(stk.dat.st)
+stk.all.st <- inla.stack(stk.dat.st,stk.prd.st)
 
 #5.Formula
 f.DCst <- z ~ -1 + Intercept + DC + SST + SALI + GSST + BAT + CHL +f(i, model = spde,   group = i.group, control.group = list(model = 'ar1',
-hyper=list(theta=list(prior='pc.cor1', param=c(0.3, 0.7)))))
+hyper=list(theta=list(prior='pc.cor1', param=c(0.1, 0.7)))))
 
 #6.Fitting the model
 r.DCst <- inla(f.DCst, family = 'binomial', 
@@ -118,7 +131,6 @@ summary(r.DCst)
 
 
 #Plot the posterior
-
 
 par(mfrow = c(4, 2), mar = c(3, 3.5, 0, 0), mgp = c(1.5, 0.5, 0), las = 0) 
 plot(r.DCst$marginals.fix[[1]], type = 'l', 
@@ -159,13 +171,13 @@ library(splancs)
 xy.in <- inout(projgrid$lattice$loc, as.matrix(poly.gridutm@polygons[[1]]@Polygons[[1]]@coords))#Test points for inclusion in a polygon
 table(xy.in)
 mu.st1 <- lapply(1:mesh$n, function(j) {
-  idx <- 1:spde$n.spde + (j - 1) * spde$n.spde
-  r <- inla.mesh.project(projgrid,field = r.DCst$summary.ran$i$mean[idx])
+  idx <- 1:spde$n.spde + (j - 1) * spde$n.spde #index to find the spatial field per year
+  r <- inla.mesh.project(projgrid,field = r.DCst$summary.random$i$mean[idx])
   r[!xy.in] <- NA
   return(r)
 })
 zlm1 <- range(unlist(mu.st1), na.rm = TRUE)
-# identify wich time location is near each knot
+# plot of the random field
 x11()
 par(mfrow = c(6, 3), mar = c(0, 0, 1, 0))
 
@@ -190,5 +202,5 @@ for(i in 1:18){
   book.plot.field(list(x = projgrid$x, y = projgrid$y, z = meanproj))
 }
 
-
+#Plot per year spatial field
 
