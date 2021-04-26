@@ -29,6 +29,7 @@ samplet<- sample(seq_len(nrow(data_1)),size = sample_size)
 data_1t<-data_1[samplet,]
 data_1p<-data_1[-samplet,]
 
+data_1t<-data_1t[order(data_1t$Year),]
 table(data_1t$Year)
 x_loc = cbind(data_1t$Lon_M, data_1t$Lat_M)
 spdat <- data_1t
@@ -113,7 +114,7 @@ stk.all.st <- inla.stack(stk.dat.st,stk.prd.st)
 
 #5.Formula
 f.DCst <- z ~ -1 + Intercept + DC + SST + SALI + GSST + BAT + CHL +f(i, model = spde,   group = i.group, control.group = list(model = 'ar1',
-hyper=list(theta=list(prior='pc.cor1', param=c(0.1, 0.7)))))
+hyper=list(theta=list(prior='pc.cor1', param=c(0.3, 0.7)))))
 
 #6.Fitting the model
 r.DCst <- inla(f.DCst, family = 'binomial', 
