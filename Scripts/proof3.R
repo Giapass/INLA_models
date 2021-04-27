@@ -18,8 +18,8 @@ data_1<-data%>%dplyr::select(Year,Lon_M,Lat_M,MUN,ANC,DC,SST,SALI,GSST, BAT,CHL)
 data_1 = na.omit(data_1)
 data_1$MUN<-ifelse(data_1$MUN>0,1,0)
 data_1$BAT<-(data_1$BAT*-1)/1000
-# Standardise covariates
-data_1<-data_1%>%mutate_at(vars(DC,SST,SALI,GSST, BAT,CHL),scale)
+# Standardise covariates, NOT NEEDED, doesnt help to optmise computing time
+#data_1<-data_1%>%mutate_at(vars(DC,SST,SALI,GSST, BAT,CHL),scale)
 
 
 RNGkind(sample.kind = 'Rounding')
@@ -29,7 +29,7 @@ samplet<- sample(seq_len(nrow(data_1)),size = sample_size)
 data_1t<-data_1[samplet,]
 data_1p<-data_1[-samplet,]
 
-data_1t<-data_1t[order(data_1t$Year),]
+data_1t<-data_1t[order(data_1t$Year),]#important to reorder
 table(data_1t$Year)
 x_loc = cbind(data_1t$Lon_M, data_1t$Lat_M)
 spdat <- data_1t
@@ -91,7 +91,7 @@ dim(Aprd)
 data_pred = read.csv('./Data/var_pred_c.csv',header = T)
 
 
-#4.Stack data
+#Stack data
 Xpm = model.matrix(~ -1 + DC + SST + SALI + GSST + BAT + CHL, data = data_pred)
 
 dim(Xpm)
