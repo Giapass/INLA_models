@@ -40,17 +40,37 @@ print('Prediction started')
 
 mesh = readRDS('./Data/mesh_spring_1.rds')
 
+mesh$n
+
 spde <- inla.spde2.pcmatern(mesh = mesh,
                             prior.range = c(50, 0.01),
                             prior.sigma = c(5, 0.3))
 
-data_pred = read.csv('./Data/var_pred_spring.csv',header = T)
+data_pred_1 = read.csv('./Data/var_pred_spring.csv',header = T)
+
+data_pred_1<-data_pred_1%>%dplyr::select(DC,SST,SALI,GSST, BAT,CHL)
+
+mean_dat= c(mean(data$DC),mean(data$SST),mean(data$SALI),mean(data$GSST),mean(data$BAT),mean(data$CHL))
+
+sd_dat = c(sd(data$DC),sd(data$SST),sd(data$SALI),sd(data$GSST),sd(data$BAT),sd(data$CHL))
+
+data_pred = matrix(NaN, ncol = 6, nrow = nrow(data_pred_1))
+
+for (i in 1:6) {
+
+  data_pred[,i] = (data_pred_1[,i]-mean_dat[i])/sd_dat[i]
+  
+  }
+
+colnames(data_pred) = c('DC','SST','SALI','GSST', 'BAT','CHL')
+
+data_pred = as.data.frame(data_pred)
 
 time_mesh<-sort(rep(seq(1:16),mesh$n))
 
 mesh.loc =cbind(rep(mesh$loc[,1],16),rep(mesh$loc[,2],16),sort(rep(seq(1:16),mesh$n)))
 
-Aprd <- inla.spde.make.A(mesh,loc=mesh.loc,group=time_mesh)#
+Aprd <- inla.spde.make.A(mesh,loc=mesh.loc,group=time_mesh, n.group = 16)#
 
 dim(Aprd)
 
@@ -78,7 +98,6 @@ NRep = length(unique(Rep_s))
 Arep = inla.spde.make.A(mesh, repl = Rep_s, loc = x_loc_utm)
 w.index = inla.spde.make.index(name='w', n.spde = mesh$n, n.repl = NRep)
 
-stk.dat.rp = inla.stack(tag='dat', data = list(y = data_1t$MUN), A = list(Arep, 1), effects = list(w.index,X))
 
 # ar
 
@@ -93,6 +112,8 @@ mesh.t1 = inla.mesh.1d(1:16)
 data_1t$Year<-as.numeric(factor(data_1t$Year))
 
 Aspte<- inla.spde.make.A(mesh=mesh, loc=x_loc_utm, group.mesh =mesh.t1, group = data_1t$Year)
+
+stk.dat.rp = inla.stack(tag='dat', data = list(y = data_1t$MUN), A = list(Arep, 1), effects = list(w.index,X))
 
 stk.dat.ar <- inla.stack(tag='dat', data = list(z = data_1t$MUN),
                          A = list(Aspte,1), effects = list(index.st,X))
