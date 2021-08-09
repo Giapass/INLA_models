@@ -1,4 +1,4 @@
-## Code for model validation - INLA ## 
+## Code for model prediction - INLA ## 
 ## Red squat lobster spatiotemporal patterns ## 
 ## Authors: Noelia Valderrama, Giannina Passuni and Daniel Grados
 #################################################################
