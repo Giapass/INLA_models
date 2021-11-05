@@ -7,7 +7,6 @@ library(INLA)
 library(dplyr)
 library(raster)
 
-
 # Data from sampling 
 
 setwd("~/Documents/Master_Tesis/INLA_models-master")
